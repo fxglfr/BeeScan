@@ -22,6 +22,11 @@ const App: React.FC = () => {
   const [showTutorial, setShowTutorial] = useState<boolean>(false);
   const [scale, setScale] = useState<number>(1);
   const [blurLevel, setBlurLevel] = useState<number>(0);
+  const [saturationLevel, setSaturationLevel] = useState<number>(100);
+  const [temperatureLevel, setTemperatureLevel] = useState<number>(0);
+  const [tintLevel, setTintLevel] = useState<number>(0);
+  const [isThresholding, setIsThresholding] = useState<boolean>(false);
+  const [thresholdLevel, setThresholdLevel] = useState<number>(145);
   const [showImprovementToast, setShowImprovementToast] = useState<boolean>(false);
 
   useEffect(() => {
@@ -49,6 +54,11 @@ const App: React.FC = () => {
     setIsFineTuning(false);
     setScale(1);
     setBlurLevel(0);
+    setSaturationLevel(100);
+    setTemperatureLevel(0);
+    setTintLevel(0);
+    setIsThresholding(false);
+    setThresholdLevel(145);
   };
 
   const handleAnalyzeClick = useCallback(async () => {
@@ -87,6 +97,11 @@ const App: React.FC = () => {
     setIsFineTuning(false);
     setScale(1);
     setBlurLevel(0);
+    setSaturationLevel(100);
+    setTemperatureLevel(0);
+    setTintLevel(0);
+    setIsThresholding(false);
+    setThresholdLevel(145);
   };
 
   const handleAddMite = (mite: Mite) => {
@@ -105,9 +120,12 @@ const App: React.FC = () => {
   const handleZoomOut = () => setScale(s => Math.max(s / 1.2, 0.5));
   const handleZoomReset = () => setScale(1);
 
-  const handleBlurChange = (level: number) => {
-    setBlurLevel(level);
-  };
+  const handleBlurChange = (level: number) => setBlurLevel(level);
+  const handleSaturationChange = (level: number) => setSaturationLevel(level);
+  const handleTemperatureChange = (level: number) => setTemperatureLevel(level);
+  const handleTintChange = (level: number) => setTintLevel(level);
+  const handleThresholdToggle = () => setIsThresholding(prev => !prev);
+  const handleThresholdChange = (level: number) => setThresholdLevel(level);
 
   const handleSaveAnalysis = () => {
     if (!result) return;
@@ -148,6 +166,27 @@ const App: React.FC = () => {
     }
   };
 
+  const handleApplyAiFilter = () => {
+    if (result) {
+      if (typeof result.optimal_threshold === 'number') {
+        setIsThresholding(true);
+        setThresholdLevel(result.optimal_threshold);
+      }
+      if (typeof result.optimal_saturation === 'number') {
+        setSaturationLevel(result.optimal_saturation);
+      }
+      if (typeof result.optimal_temperature === 'number') {
+        setTemperatureLevel(result.optimal_temperature);
+      }
+      if (typeof result.optimal_tint === 'number') {
+        setTintLevel(result.optimal_tint);
+      }
+      if (typeof result.optimal_zoom === 'number') {
+        setScale(result.optimal_zoom);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200 flex flex-col items-center p-4 sm:p-6 lg:p-8">
       {showTutorial && <Tutorial onClose={handleCloseTutorial} />}
@@ -163,27 +202,48 @@ const App: React.FC = () => {
             <div className="flex flex-col space-y-4">
                {imageUrl ? (
                 <>
-                  <AnnotatedImage
-                    imageUrl={imageUrl}
-                    mites={mites}
-                    onMiteAdd={handleAddMite}
-                    onMiteRemove={handleRemoveMite}
-                    isFineTuning={isFineTuning}
-                    scale={scale}
-                    blurLevel={blurLevel}
-                  />
-                  <div className="space-y-3 pt-1">
-                    <ZoomControls
+                    <AnnotatedImage
+                      imageUrl={imageUrl}
+                      mites={mites}
+                      onMiteAdd={handleAddMite}
+                      onMiteRemove={handleRemoveMite}
+                      isFineTuning={isFineTuning}
                       scale={scale}
-                      onZoomIn={handleZoomIn}
-                      onZoomOut={handleZoomOut}
-                      onZoomReset={handleZoomReset}
-                    />
-                    <FilterControls 
                       blurLevel={blurLevel}
-                      onBlurChange={handleBlurChange}
+                      saturationLevel={saturationLevel}
+                      temperatureLevel={temperatureLevel}
+                      tintLevel={tintLevel}
+                      isThresholding={isThresholding}
+                      thresholdLevel={thresholdLevel}
+                      focusCenter={result?.optimal_center}
                     />
-                  </div>
+                    <div className="space-y-3 pt-1">
+                      <ZoomControls
+                        scale={scale}
+                        onZoomIn={handleZoomIn}
+                        onZoomOut={handleZoomOut}
+                        onZoomReset={handleZoomReset}
+                      />
+                      <FilterControls 
+                        blurLevel={blurLevel}
+                        onBlurChange={handleBlurChange}
+                        saturationLevel={saturationLevel}
+                        onSaturationChange={handleSaturationChange}
+                        temperatureLevel={temperatureLevel}
+                        onTemperatureChange={handleTemperatureChange}
+                        tintLevel={tintLevel}
+                        onTintChange={handleTintChange}
+                        isThresholding={isThresholding}
+                        onThresholdToggle={handleThresholdToggle}
+                        thresholdLevel={thresholdLevel}
+                        onThresholdChange={handleThresholdChange}
+                        optimalThreshold={result?.optimal_threshold}
+                        optimalSaturation={result?.optimal_saturation}
+                        optimalTemperature={result?.optimal_temperature}
+                        optimalTint={result?.optimal_tint}
+                        onApplyAiFilter={handleApplyAiFilter}
+                      />
+                    </div>
                 </>
               ) : (
                 <ImageUploader onImageChange={handleImageChange} />

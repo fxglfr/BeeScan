@@ -1,5 +1,6 @@
 {
   "name": "BeeScan",
   "description": "An application to help beekeepers detect Varroa mites on hive inspection boards (langes) by analyzing uploaded photos with AI.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
